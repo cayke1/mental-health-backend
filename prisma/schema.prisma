@@ -18,21 +18,25 @@ model User {
   name                       String
   email                      String                       @unique
   password                   String
+  role                       Role                         @default(PATIENT)
   createdAt                  DateTime                     @default(now())
-  updatedAt                  DateTime                     @default(now())
+  updatedAt                  DateTime                     @updatedAt
+  licenseNumber              String?                      @unique
   feelings                   Feeling[]
   DailyPositiveReinforcement DailyPositiveReinforcement[]
+  professionals              ProfessionalPatient[]        @relation("ProfessionalPatients_professional")
+  patients                   ProfessionalPatient[]        @relation("ProfessionalPatients_patient")
 }
 
 model Feeling {
-  id                  String   @id @unique @default(uuid())
+  id                  String   @id @default(uuid())
   mood                String
   predominant_feeling String
   description         String?
   createdAt           DateTime @default(now())
-  updatedAt           DateTime @default(now())
-  User                User?    @relation(fields: [userId], references: [id])
-  userId              String?
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id])
+  userId              String
 }
 
 model DailyPositiveReinforcement {
@@ -41,7 +45,21 @@ model DailyPositiveReinforcement {
   conquest      String
   kindness      String
   createdAt     DateTime @default(now())
-  updatedAt     DateTime @default(now())
-  User          User?    @relation(fields: [userId], references: [id])
-  userId        String?
+  updatedAt     DateTime @updatedAt
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+}
+
+model ProfessionalPatient {
+  id             String   @id @default(uuid())
+  professional   User     @relation("ProfessionalPatients_professional", fields: [professionalId], references: [id])
+  professionalId String
+  patient        User     @relation("ProfessionalPatients_patient", fields: [patientId], references: [id])
+  patientId      String
+  createdAt      DateTime @default(now())
+}
+
+enum Role {
+  PATIENT
+  PROFESSIONAL
 }
