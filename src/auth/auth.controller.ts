@@ -6,11 +6,11 @@ import {
   Post,
   Get,
   Request,
-  UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthGuard } from './auth.guard';
 import { Public } from 'src/custom/decorators/public.decorator';
+import { Role } from 'src/custom/enum/roles.enum';
+import { Roles } from 'src/custom/decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -29,10 +29,9 @@ export class AuthController {
   signUp(@Body() data: { email: string; password: string; name: string }) {
     return this.authService.signUp(data);
   }
-
-  @UseGuards(AuthGuard)
+  //@Roles([Role.PROFESSIONAL, Role.PATIENT])
   @Get('profile')
   getProfile(@Request() req) {
-    return req.user;
+    return req['user'];
   }
 }
