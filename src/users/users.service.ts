@@ -1,4 +1,8 @@
-import { Injectable, UnprocessableEntityException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnprocessableEntityException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dtos/CreateUserDto';
 
@@ -20,5 +24,15 @@ export class UsersService {
     return this.prisma.user.create({
       data,
     });
+  }
+
+  async findOneByEmail(email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
   }
 }
