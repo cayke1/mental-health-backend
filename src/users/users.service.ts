@@ -26,6 +26,19 @@ export class UsersService {
     });
   }
 
+  async updateStripeCustomerId(stripeCustomerId: string, email: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return this.prisma.user.update({
+      where: { id: user.id },
+      data: { stripeCustomerId },
+    });
+  }
+
   async findOneByEmail(email: string) {
     const user = await this.prisma.user.findUnique({
       where: { email },

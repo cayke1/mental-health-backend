@@ -7,10 +7,13 @@ import { AuthModule } from './auth/auth.module';
 import { RolesGuard } from './roles/roles.guard';
 import { AuthGuard } from './auth/auth.guard';
 import { PatientProfessionalModule } from './patient-professional/patient-professional.module';
+import { SubscriptionModule } from './subscription/subscription.module';
+import { StripeWebhookController } from './stripe-webhook/stripe-webhook.controller';
+import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, PatientProfessionalModule],
-  controllers: [AppController],
+  imports: [PrismaModule, UsersModule, AuthModule, PatientProfessionalModule, SubscriptionModule, StripeWebhookModule],
+  controllers: [AppController, StripeWebhookController],
   providers: [
     AppService,
     {

@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcryptjs';
+import { SubscriptionService } from 'src/subscription/subscription.service';
 import { CreateUserDto } from 'src/users/dtos/CreateUserDto';
 import { UsersService } from 'src/users/users.service';
 
@@ -9,6 +10,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private subscription: SubscriptionService,
   ) {}
 
   async signIn(data: { email: string; password: string }): Promise<any> {
@@ -16,6 +18,14 @@ export class AuthService {
     const passwordMatch = await compare(data.password, user.password);
     if (!user || !passwordMatch) {
       return new UnauthorizedException('Invalid credentials');
+    }
+
+    if (!user.stripeCustomerId) {
+      const customer = await this.subscription.createStripeCustomer(
+        user.email,
+        user.name,
+      );
+      await this.usersService.updateStripeCustomerId(customer.id, user.email);
     }
 
     const payload = {
@@ -45,6 +55,11 @@ export class AuthService {
       name: user.name,
       role: user.role,
     };
+    const customer = await this.subscription.createStripeCustomer(
+      user.email,
+      user.name,
+    );
+    await this.usersService.updateStripeCustomerId(customer.id, user.email);
     return {
       access_token: await this.jwtService.signAsync(payload),
       id: user.id,
