@@ -29,7 +29,7 @@ export class StripeWebhookController {
         endpointSecret,
       );
     } catch (err) {
-        console.log(err)
+      console.log(err);
       return { received: false };
     }
     console.log(event.type);
@@ -39,6 +39,10 @@ export class StripeWebhookController {
         break;
       case 'customer.subscription.updated':
         console.log('Subscription updated:', event.data.object);
+        break;
+
+      case 'charge.refunded':
+        await this.handleChargeRefunded(event);
         break;
       case 'customer.subscription.deleted':
         console.log('Subscription deleted:', event.data.object);
@@ -75,6 +79,31 @@ export class StripeWebhookController {
       });
     } catch (error) {
       console.log('Error creating subscription:', error);
+      throw error;
+    }
+  }
+
+  private async handleChargeRefunded(event: Stripe.Event) {
+    console.log(event);
+    const billing_details = event.object;
+    const email = billing_details;
+    const professional = await this.prisma.user.findUnique({
+      where: { email, role: 'PROFESSIONAL' },
+    });
+
+    if (!professional) {
+      throw new NotFoundException('Professional not found');
+    }
+    try {
+      const sub = await this.prisma.subscription.deleteMany({
+        where: { professionalId: professional.id },
+      });
+      if (!sub) {
+        throw new NotFoundException('Subscription not found');
+      }
+      return { message: 'Subscription deleted successfully' };
+    } catch (error) {
+      console.log('Error deleting subscription:', error);
       throw error;
     }
   }
