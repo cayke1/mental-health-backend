@@ -10,9 +10,18 @@ import { PatientProfessionalModule } from './patient-professional/patient-profes
 import { SubscriptionModule } from './subscription/subscription.module';
 import { StripeWebhookController } from './stripe-webhook/stripe-webhook.controller';
 import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module';
+import { ProfessionalReportsModule } from './professional-reports/professional-reports.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, PatientProfessionalModule, SubscriptionModule, StripeWebhookModule],
+  imports: [
+    PrismaModule,
+    UsersModule,
+    AuthModule,
+    PatientProfessionalModule,
+    SubscriptionModule,
+    StripeWebhookModule,
+    ProfessionalReportsModule,
+  ],
   controllers: [AppController, StripeWebhookController],
   providers: [
     AppService,
