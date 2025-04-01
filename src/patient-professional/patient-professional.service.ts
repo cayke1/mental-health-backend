@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -6,6 +10,37 @@ export class PatientProfessionalService {
   constructor(private prismaService: PrismaService) {}
 
   async linkPatient(professional_id: string, patientEmail: string) {
+    const professional = await this.prismaService.user.findUnique({
+      where: { id: professional_id },
+    });
+    if (!professional) throw new NotFoundException('Professional not found');
+
+    const subscription = await this.prismaService.subscription.findFirst({
+      where: {
+        professionalId: professional_id,
+        status: 'ACTIVE',
+      },
+    });
+
+    if (!subscription) {
+      throw new NotFoundException(
+        'Professional does not have an active subscription',
+      );
+    }
+
+    const linkedPatientsCount =
+      await this.prismaService.professionalPatient.count({
+        where: {
+          professionalId: professional_id,
+        },
+      });
+
+    if (subscription.plan === 'BASIC' && linkedPatientsCount >= 5) {
+      throw new BadRequestException(
+        'Professional has reached the maximum number of patients for this plan, please upgrade to continue',
+      );
+    }
+
     const patient = await this.prismaService.user.findUnique({
       where: {
         email: patientEmail,
