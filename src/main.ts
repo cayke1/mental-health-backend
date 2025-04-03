@@ -6,6 +6,12 @@ import { raw } from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors({
+    origin: '*',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
+  });
   app.use('/stripe-webhook', raw({ type: 'application/json' }));
 
   const config = new DocumentBuilder()
@@ -18,12 +24,10 @@ async function bootstrap() {
   const theme = new SwaggerTheme();
   const options = {
     explorer: true,
-    customCss: theme.getBuffer(SwaggerThemeNameEnum.DARK)
+    customCss: theme.getBuffer(SwaggerThemeNameEnum.DARK),
   };
   SwaggerModule.setup('api', app, document, options);
 
   await app.listen(3000);
 }
 bootstrap();
-
-
