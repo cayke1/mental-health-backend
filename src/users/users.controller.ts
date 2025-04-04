@@ -1,6 +1,7 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/CreateUserDto';
+import { Public } from 'src/custom/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -14,5 +15,11 @@ export class UsersController {
   @Post()
   async create(@Body() data: CreateUserDto) {
     return this.usersService.create(data);
+  }
+
+  @Public()
+  @Get(':id')
+  async findById(@Param('id') id: string) {
+    return this.usersService.findOneById(id);
   }
 }
