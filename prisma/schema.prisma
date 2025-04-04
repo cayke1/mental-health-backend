@@ -28,6 +28,7 @@ model User {
   professionals              ProfessionalPatient[]        @relation("ProfessionalPatients_professional")
   patients                   ProfessionalPatient[]        @relation("ProfessionalPatients_patient")
   Subscription               Subscription?
+  Invite                     Invite[]
 }
 
 model Subscription {
@@ -82,6 +83,23 @@ model ProfessionalPatient {
   patient        User     @relation("ProfessionalPatients_patient", fields: [patientId], references: [id])
   patientId      String
   createdAt      DateTime @default(now())
+}
+
+model Invite {
+  id        String       @id @unique @default(uuid())
+  sent_by   String
+  sent_to   String
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  status    InviteStatus
+
+  professional User @relation(fields: [sent_by], references: [id])
+}
+
+enum InviteStatus {
+  ACCEPTED
+  REJECTED
+  PENDING
 }
 
 enum Role {

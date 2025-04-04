@@ -2,16 +2,17 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { getEmailTemplate } from 'src/custom/emailtemplates/base';
-import { MailService } from 'src/mail/mail.service';
+import { InviteService } from 'src/invite/invite.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PatientProfessionalService {
   constructor(
     private prismaService: PrismaService,
-    private mailService: MailService,
+    private inviteService: InviteService,
   ) {}
 
   async linkPatient(professional_id: string, patientEmail: string) {
@@ -19,33 +20,8 @@ export class PatientProfessionalService {
       where: { id: professional_id },
     });
     if (!professional) throw new NotFoundException('Professional not found');
-
-    const subscription = await this.prismaService.subscription.findFirst({
-      where: {
-        professionalId: professional_id,
-        status: 'ACTIVE',
-      },
-    });
-
-    if (!subscription) {
-      throw new NotFoundException(
-        'Professional does not have an active subscription',
-      );
-    }
-
-    const linkedPatientsCount =
-      await this.prismaService.professionalPatient.count({
-        where: {
-          professionalId: professional_id,
-        },
-      });
-
-    if (subscription.plan === 'BASIC' && linkedPatientsCount >= 5) {
-      throw new BadRequestException(
-        'Professional has reached the maximum number of patients for this plan, please upgrade to continue',
-      );
-    }
-
+    if (professional.role !== 'PROFESSIONAL')
+      throw new UnauthorizedException('User is not a professional');
     const patient = await this.prismaService.user.findUnique({
       where: {
         email: patientEmail,
@@ -53,40 +29,11 @@ export class PatientProfessionalService {
     });
 
     if (patient) {
-      const alreadyLinked =
-        await this.prismaService.professionalPatient.findFirst({
-          where: {
-            patientId: patient.id,
-          },
-        });
-
-      if (alreadyLinked) {
-        throw new BadRequestException(
-          'Patient already linked to an professional',
-        );
-      }
-
-      // send mail to patient
-
-      const html = getEmailTemplate({
-        heading: 'Convite recebido',
-        body: `Você foi convidado por ${professional.name} para liderar seu tratamento.`,
-        ctaText: 'Aceitar convite',
-        ctaUrl: `${process.env.FRONTEND_URL}/invite-link/link/${professional.id}`,
-      });
-
-      return this.mailService.sendInvitationMail(patient.email, html);
+      return this.inviteService.invite_registered_user(professional, patient);
     }
 
     // send invite mail to patient
-    const html = getEmailTemplate({
-      heading: 'Convite recebido',
-      body: `Você foi convidado por ${professional.name} para liderar seu tratamento.`,
-      ctaText: 'Aceitar convite',
-      ctaUrl: `${process.env.FRONTEND_URL}/invite-link/register/${professional.id}`,
-    });
-
-    return this.mailService.sendInvitationMail(patientEmail, html);
+    return this.inviteService.invite_outside_user(professional, patientEmail);
   }
 
   async unlinkPatient(professional_id: string, patientEmail: string) {
