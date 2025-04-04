@@ -4,7 +4,7 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { CreateUserDto } from './dtos/CreateUserDto';
+import { CreatePatientDto, CreateUserDto } from './dtos/CreateUserDto';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +24,41 @@ export class UsersService {
     return this.prisma.user.create({
       data,
     });
+  }
+
+  async createPatient(data: CreatePatientDto) {
+    const exists = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (exists) throw new UnprocessableEntityException('User already exists');
+
+    const professionalExists = await this.prisma.user.findUnique({
+      where: { id: data.professional_id },
+    });
+
+    if (!professionalExists) {
+      throw new UnprocessableEntityException('Professional not found');
+    }
+
+    const patient = await this.prisma.user.create({
+      data: {
+        ...data,
+        role: 'PATIENT',
+      },
+    });
+
+    const patient_professional = await this.prisma.professionalPatient.create({
+      data: {
+        professionalId: data.professional_id,
+        patientId: patient.id,
+      },
+    });
+
+    return {
+      ...patient,
+      patient_professional,
+    };
   }
 
   async updateStripeCustomerId(stripeCustomerId: string, email: string) {

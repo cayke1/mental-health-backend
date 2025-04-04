@@ -9,8 +9,6 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Public } from 'src/custom/decorators/public.decorator';
-import { Role } from 'src/custom/enum/roles.enum';
-import { Roles } from 'src/custom/decorators/roles.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +19,21 @@ export class AuthController {
   @Post('login')
   signIn(@Body() data: { email: string; password: string }) {
     return this.authService.signIn(data);
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.CREATED)
+  @Post('register/patient')
+  signUpPatient(
+    @Body()
+    data: {
+      email: string;
+      password: string;
+      name: string;
+      professional_id: string;
+    },
+  ) {
+    return this.authService.patientSignup(data);
   }
 
   @Public()

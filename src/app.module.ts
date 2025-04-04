@@ -11,6 +11,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { StripeWebhookController } from './stripe-webhook/stripe-webhook.controller';
 import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module';
 import { ProfessionalReportsModule } from './professional-reports/professional-reports.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { ProfessionalReportsModule } from './professional-reports/professional-r
     SubscriptionModule,
     StripeWebhookModule,
     ProfessionalReportsModule,
+    MailModule,
   ],
   controllers: [AppController, StripeWebhookController],
   providers: [

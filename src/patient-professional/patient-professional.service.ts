@@ -3,11 +3,16 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { getEmailTemplate } from 'src/custom/emailtemplates/base';
+import { MailService } from 'src/mail/mail.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class PatientProfessionalService {
-  constructor(private prismaService: PrismaService) {}
+  constructor(
+    private prismaService: PrismaService,
+    private mailService: MailService,
+  ) {}
 
   async linkPatient(professional_id: string, patientEmail: string) {
     const professional = await this.prismaService.user.findUnique({
@@ -47,14 +52,41 @@ export class PatientProfessionalService {
       },
     });
 
-    if (!patient) throw new NotFoundException('Patient not found');
+    if (patient) {
+      const alreadyLinked =
+        await this.prismaService.professionalPatient.findFirst({
+          where: {
+            patientId: patient.id,
+          },
+        });
 
-    return this.prismaService.professionalPatient.create({
-      data: {
-        professionalId: professional_id,
-        patientId: patient.id,
-      },
+      if (alreadyLinked) {
+        throw new BadRequestException(
+          'Patient already linked to an professional',
+        );
+      }
+
+      // send mail to patient
+
+      const html = getEmailTemplate({
+        heading: 'Convite recebido',
+        body: `Você foi convidado por ${professional.name} para liderar seu tratamento.`,
+        ctaText: 'Aceitar convite',
+        ctaUrl: `${process.env.FRONTEND_URL}/invite-link/link/${professional.id}`,
+      });
+
+      return this.mailService.sendInvitationMail(patient.email, html);
+    }
+
+    // send invite mail to patient
+    const html = getEmailTemplate({
+      heading: 'Convite recebido',
+      body: `Você foi convidado por ${professional.name} para liderar seu tratamento.`,
+      ctaText: 'Aceitar convite',
+      ctaUrl: `${process.env.FRONTEND_URL}/invite-link/register/${professional.id}`,
     });
+
+    return this.mailService.sendInvitationMail(patientEmail, html);
   }
 
   async unlinkPatient(professional_id: string, patientEmail: string) {
