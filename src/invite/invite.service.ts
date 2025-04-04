@@ -99,10 +99,10 @@ export class InviteService {
     return { invite, mail };
   }
 
-  async accept_invite(professional_id: string, patient_id: string) {
-    const invite = await this.prisma.invite.findFirst({
+  async accept_invite(invite_id: string, patient_id: string) {
+    const invite = await this.prisma.invite.findUnique({
       where: {
-        sent_by: professional_id,
+        id: invite_id,
         sent_to: patient_id,
       },
     });
@@ -129,7 +129,7 @@ export class InviteService {
 
     const relation = await this.prisma.professionalPatient.create({
       data: {
-        professionalId: professional_id,
+        professionalId: invite.sent_by,
         patientId: patient_id,
       },
     });
@@ -146,10 +146,10 @@ export class InviteService {
     return { message: 'Invite accepted successfully', relation };
   }
 
-  async reject_invite(professional_id: string, patient_id: string) {
+  async reject_invite(invite_id: string, patient_id: string) {
     const invite = await this.prisma.invite.findFirst({
       where: {
-        sent_by: professional_id,
+        id: invite_id,
         sent_to: patient_id,
       },
     });
