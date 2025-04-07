@@ -50,7 +50,8 @@ export class InviteService {
     return true;
   }
   async invite_registered_user(professional: User, patient: User) {
-    if (!this.checkSubscription(professional.id)) {
+    const subscription = await this.checkSubscription(professional.id);
+    if (!subscription) {
       throw new BadRequestException('Subscription limit reached');
     }
 
@@ -76,7 +77,8 @@ export class InviteService {
   }
 
   async invite_outside_user(professional: User, patient_email: string) {
-    if (!this.checkSubscription(professional.id)) {
+    const subscription = await this.checkSubscription(professional.id);
+    if (!subscription) {
       throw new BadRequestException('Subscription limit reached');
     }
     const invite = await this.prisma.invite.create({

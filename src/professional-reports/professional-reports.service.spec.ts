@@ -9,7 +9,9 @@ describe('ProfessionalReportsService', () => {
       providers: [ProfessionalReportsService],
     }).compile();
 
-    service = module.get<ProfessionalReportsService>(ProfessionalReportsService);
+    service = module.get<ProfessionalReportsService>(
+      ProfessionalReportsService,
+    );
   });
 
   it('should be defined', () => {

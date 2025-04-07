@@ -10,6 +10,17 @@ import {
 import { AuthService } from './auth.service';
 import { Public } from 'src/custom/decorators/public.decorator';
 
+interface RequestUser {
+  sub: string;
+  email: string;
+  name: string;
+  role: string;
+}
+
+interface AuthenticatedRequest extends Request {
+  user: RequestUser;
+}
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -44,7 +55,10 @@ export class AuthController {
   }
   //@Roles([Role.PROFESSIONAL, Role.PATIENT])
   @Get('profile')
-  getProfile(@Request() req) {
-    return req['user'];
+  getProfile(@Request() req: AuthenticatedRequest): RequestUser {
+    if (!req.user) {
+      throw new Error('User not found');
+    }
+    return req.user;
   }
 }

@@ -3,7 +3,7 @@ import { StripeWebhookController } from './stripe-webhook.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-    imports: [PrismaModule],
-    controllers: [StripeWebhookController],
+  imports: [PrismaModule],
+  controllers: [StripeWebhookController],
 })
 export class StripeWebhookModule {}

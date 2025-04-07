@@ -9,7 +9,9 @@ describe('ProfessionalReportsController', () => {
       controllers: [ProfessionalReportsController],
     }).compile();
 
-    controller = module.get<ProfessionalReportsController>(ProfessionalReportsController);
+    controller = module.get<ProfessionalReportsController>(
+      ProfessionalReportsController,
+    );
   });
 
   it('should be defined', () => {

@@ -15,7 +15,6 @@ import { SubscriptionModule } from 'src/subscription/subscription.module';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: jwtConstants.expiresIn },
     }),
-    
   ],
   controllers: [AuthController],
   providers: [AuthService],
