@@ -50,7 +50,15 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
-  signUp(@Body() data: { email: string; password: string; name: string }) {
+  signUp(
+    @Body()
+    data: {
+      email: string;
+      password: string;
+      name: string;
+      role?: 'PATIENT' | 'PROFESSIONAL';
+    },
+  ) {
     return this.authService.signUp(data);
   }
   //@Roles([Role.PROFESSIONAL, Role.PATIENT])

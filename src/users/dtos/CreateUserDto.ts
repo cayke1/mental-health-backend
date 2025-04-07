@@ -2,6 +2,7 @@ export interface CreateUserDto {
   name: string;
   email: string;
   password: string;
+  role?: 'PATIENT' | 'PROFESSIONAL';
 }
 
 export interface CreatePatientDto {
