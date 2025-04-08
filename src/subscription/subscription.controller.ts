@@ -2,6 +2,7 @@ import { Body, Controller, Param, Post, Request } from '@nestjs/common';
 import { SubscriptionService } from './subscription.service';
 import { Roles } from 'src/custom/decorators/roles.decorator';
 import { Role } from 'src/custom/enum/roles.enum';
+import { AuthenticatedRequest } from 'src/auth/auth.controller';
 
 @Controller('subscription')
 export class SubscriptionController {
@@ -10,7 +11,7 @@ export class SubscriptionController {
   @Roles([Role.PROFESSIONAL])
   @Post('checkout')
   async checkout(
-    @Request() req,
+    @Request() req: AuthenticatedRequest,
     @Body() data: { plan: 'basic' | 'unlimited' },
   ) {
     return this.subscriptionService.createCheckoutSession(
