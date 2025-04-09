@@ -23,4 +23,20 @@ export class MailService {
 
     return data;
   }
+
+  async sendFeelingReminder(recipientEmail: string, html: string) {
+    const { data, error } = await this.resend.emails.send({
+      from: this.from,
+      to: recipientEmail,
+      subject: 'Lembrete de registro de sentimento diário',
+      html,
+    });
+
+    if (error) {
+      console.error('Error sending email:', error);
+      throw new Error('Error sending email');
+    }
+
+    return data;
+  }
 }

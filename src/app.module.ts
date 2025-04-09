@@ -13,6 +13,8 @@ import { StripeWebhookModule } from './stripe-webhook/stripe-webhook.module';
 import { ProfessionalReportsModule } from './professional-reports/professional-reports.module';
 import { MailModule } from './mail/mail.module';
 import { InviteModule } from './invite/invite.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { InviteModule } from './invite/invite.module';
     ProfessionalReportsModule,
     MailModule,
     InviteModule,
+    ScheduleModule.forRoot(),
+    TasksModule,
   ],
   controllers: [AppController, StripeWebhookController],
   providers: [
