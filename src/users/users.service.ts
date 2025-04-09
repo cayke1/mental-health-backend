@@ -43,7 +43,9 @@ export class UsersService {
 
     const patient = await this.prisma.user.create({
       data: {
-        ...data,
+        email: data.email,
+        name: data.name,
+        password: data.password,
         role: 'PATIENT',
       },
     });
