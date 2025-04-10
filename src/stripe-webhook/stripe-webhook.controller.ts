@@ -1,26 +1,71 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   Controller,
   Headers,
   NotFoundException,
   Post,
   Req,
+  HttpStatus,
 } from '@nestjs/common';
 import { Public } from 'src/custom/decorators/public.decorator';
 import { PrismaService } from 'src/prisma/prisma.service';
 import Stripe from 'stripe';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiHeader,
+  ApiResponse,
+  ApiExcludeEndpoint,
+} from '@nestjs/swagger';
+
 @Public()
+@ApiTags('Stripe Webhooks')
 @Controller('stripe-webhook')
 export class StripeWebhookController {
   private stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
   constructor(private prisma: PrismaService) {}
 
   @Post()
+  @ApiOperation({
+    summary: 'Handle Stripe webhooks',
+    description: 'Processes webhooks sent from Stripe for subscription events',
+  })
+  @ApiHeader({
+    name: 'stripe-signature',
+    description: 'Signature header from Stripe to verify webhook authenticity',
+    required: true,
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Webhook processed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        received: {
+          type: 'boolean',
+          example: true,
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid signature or webhook payload',
+    schema: {
+      type: 'object',
+      properties: {
+        received: {
+          type: 'boolean',
+          example: false,
+        },
+      },
+    },
+  })
   async handleWebhook(
     @Req() req,
     @Headers('stripe-signature') signature: string,
   ) {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
-
     let event;
     try {
       event = this.stripe.webhooks.constructEvent(
@@ -40,7 +85,6 @@ export class StripeWebhookController {
       case 'customer.subscription.updated':
         console.log('Subscription updated:', event.data.object);
         break;
-
       case 'charge.refunded':
         await this.handleChargeRefunded(event);
         break;
@@ -51,23 +95,20 @@ export class StripeWebhookController {
         console.log(`Unhandled event type ${event.type}`);
         break;
     }
-
     return { received: true };
   }
 
+  @ApiExcludeEndpoint()
   private async handleSubscriptionCreated(event: Stripe.Event) {
     console.log(event);
     const session = event.data.object as Stripe.Checkout.Session;
     const { professional_id, plan } = session.metadata!;
-
     const professional = await this.prisma.user.findUnique({
       where: { id: professional_id, role: 'PROFESSIONAL' },
     });
-
     if (!professional) {
       throw new NotFoundException('Professional not found');
     }
-
     try {
       await this.prisma.subscription.create({
         data: {
@@ -83,6 +124,7 @@ export class StripeWebhookController {
     }
   }
 
+  @ApiExcludeEndpoint()
   private async handleChargeRefunded(event: Stripe.Event) {
     console.log(event);
     const billing_details = event.object;
@@ -90,7 +132,6 @@ export class StripeWebhookController {
     const professional = await this.prisma.user.findUnique({
       where: { email, role: 'PROFESSIONAL' },
     });
-
     if (!professional) {
       throw new NotFoundException('Professional not found');
     }
