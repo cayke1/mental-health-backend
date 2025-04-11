@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { OneMonthAheadUnix } from 'src/utils';
 import Stripe from 'stripe';
 
 @Injectable()
@@ -53,6 +54,9 @@ export class SubscriptionService {
       metadata: {
         professional_id: professional_id,
         plan: plan,
+      },
+      subscription_data: {
+        billing_cycle_anchor: OneMonthAheadUnix(),
       },
     });
 

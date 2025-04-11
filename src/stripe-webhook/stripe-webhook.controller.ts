@@ -116,6 +116,7 @@ export class StripeWebhookController {
           stripeSubId: session.subscription as string,
           plan: plan.toUpperCase() as 'BASIC' | 'UNLIMITED',
           status: 'ACTIVE',
+          expiresAt: new Date(new Date().setMonth(new Date().getMonth() + 1)),
         },
       });
     } catch (error) {
