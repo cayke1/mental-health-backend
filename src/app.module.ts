@@ -15,6 +15,7 @@ import { MailModule } from './mail/mail.module';
 import { InviteModule } from './invite/invite.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './tasks/tasks.module';
+import { TherapySessionModule } from './therapy-session/therapy-session.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { TasksModule } from './tasks/tasks.module';
     InviteModule,
     ScheduleModule.forRoot(),
     TasksModule,
+    TherapySessionModule,
   ],
   controllers: [AppController, StripeWebhookController],
   providers: [
