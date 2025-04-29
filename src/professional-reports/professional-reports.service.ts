@@ -74,6 +74,27 @@ export class ProfessionalReportsService {
     return response;
   }
 
+  async getProfessionalPatient(patient_id: string, professional_id: string) {
+    const patient = await this.prisma.professionalPatient.findFirst({
+      where: {
+        professionalId: professional_id,
+        AND: {
+          patientId: patient_id,
+        },
+      },
+
+      select: {
+        patient: {
+          include: {
+            feelings: true,
+          },
+        },
+      },
+    });
+
+    return patient;
+  }
+
   async getProfessionalSignatureStatus(professional_id: string) {
     const signatureStatus = await this.prisma.subscription.findUnique({
       where: { professionalId: professional_id },

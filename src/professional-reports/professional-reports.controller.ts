@@ -48,6 +48,17 @@ export class ProfessionalReportsController {
     );
   }
 
+  @Get('/patient/:patient_id')
+  async getProfessionalPatient(
+    @Request() req: AuthenticatedRequest,
+    @Param('patient_id') patient_id: string,
+  ) {
+    return await this.reportService.getProfessionalPatient(
+      patient_id,
+      req.user.sub,
+    );
+  }
+
   @Get('patients/weekly-report/:patient_id')
   @ApiOperation({
     summary: 'Get patient weekly feeling records',
