@@ -9,6 +9,7 @@ export class ProfessionalReportsService {
     const patients = await this.prisma.professionalPatient.findMany({
       where: { professionalId: professional_id },
       select: {
+        id: true,
         patient: {
           select: {
             id: true,
@@ -49,7 +50,7 @@ export class ProfessionalReportsService {
         futureSessions.length > 0
           ? futureSessions[0].startDate.toISOString()
           : '';
-      let status = 'active' as const;
+      const status = 'active';
 
       const emotionScore = patient.feelings.length; // this isn't ready
 
@@ -68,6 +69,7 @@ export class ProfessionalReportsService {
         status,
         trends,
         avatar,
+        relationId: patientRelation.id,
       };
     });
 
@@ -84,6 +86,7 @@ export class ProfessionalReportsService {
       },
 
       select: {
+        id: true,
         patient: {
           select: {
             id: true,
@@ -131,7 +134,7 @@ export class ProfessionalReportsService {
         ? TherapySession[0].startDate.toISOString()
         : '';
 
-    let status = 'active';
+    const status = 'active';
 
     const emotionScore = patient.feelings.length; // this isn't ready
 
@@ -140,8 +143,6 @@ export class ProfessionalReportsService {
     // Dados mockados
     const age = 30;
     const phone = '(11) 91234-5678';
-    const address = 'Rua Exemplo, 123 - Bairro Legal';
-    const occupation = 'Designer gráfico';
     const diagnoses = ['Ansiedade generalizada'];
     const goals = ['Reduzir estresse', 'Melhorar autoestima'];
 
@@ -151,8 +152,6 @@ export class ProfessionalReportsService {
       email: patient.email,
       age,
       phone,
-      address,
-      occupation,
       avatar,
       startDate,
       lastSession,
@@ -161,6 +160,7 @@ export class ProfessionalReportsService {
       status,
       diagnoses,
       goals,
+      relationId: record.id,
     };
   }
 
