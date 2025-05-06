@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Request,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dtos/CreateUserDto';
 import { Public } from 'src/custom/decorators/public.decorator';
@@ -9,6 +18,9 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerImageOptions } from 'src/upload/utils/multer.config';
+import { AuthenticatedRequest } from 'src/auth/auth.controller';
 
 class createUserDto {
   email: string;
@@ -81,5 +93,14 @@ export class UsersController {
   })
   async findById(@Param('id') id: string) {
     return this.usersService.findOneById(id);
+  }
+
+  @Post('/upload-image')
+  @UseInterceptors(FileInterceptor('file', multerImageOptions))
+  async uploadImage(
+    @Request() req: AuthenticatedRequest,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.usersService.uploadImage(file, req.user.sub);
   }
 }

@@ -21,6 +21,7 @@ model User {
   role                       Role                         @default(PATIENT)
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime                     @updatedAt
+  imageUrl                   String?
   licenseNumber              String?                      @unique
   stripeCustomerId           String?                      @unique
   feelings                   Feeling[]
@@ -28,8 +29,10 @@ model User {
   Subscription               Subscription?
   Invite                     Invite[]
 
-  professionals ProfessionalPatient[] @relation("ProfessionalPatients_professional")
-  patients      ProfessionalPatient[] @relation("ProfessionalPatients_patient")
+  professionals     ProfessionalPatient[] @relation("ProfessionalPatients_professional")
+  patients          ProfessionalPatient[] @relation("ProfessionalPatients_patient")
+  uploadedDocuments Document[]            @relation("UploadedDocuments")
+  Document          Document[]            @relation("OwnedDocuments")
 }
 
 model Subscription {
@@ -125,6 +128,26 @@ model TherapySession {
   updatedAt             DateTime @updatedAt
 
   professionalPatient ProfessionalPatient @relation(fields: [professionalPatientId], references: [id])
+}
+
+model Document {
+  id        String           @id @unique @default(uuid())
+  url       String
+  filename  String
+  mimeType  String
+  category  DocumentCategory
+  createdAt DateTime         @default(now())
+
+  updated_by_id String?
+  updated_by    User?   @relation("UploadedDocuments", fields: [updated_by_id], references: [id])
+  owner_id      String?
+  owner         User?   @relation("OwnedDocuments", fields: [owner_id], references: [id])
+}
+
+enum DocumentCategory {
+  MODEL
+  PATIENT_UPLOAD
+  PROFESSIONAL_UPLOAD
 }
 
 enum InviteStatus {
