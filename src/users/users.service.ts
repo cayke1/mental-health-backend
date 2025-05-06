@@ -5,6 +5,10 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePatientDto, CreateUserDto } from './dtos/CreateUserDto';
+import { randomUUID } from 'node:crypto';
+import { cloudflare } from 'src/upload/utils/cloudflare.config';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { env } from 'src/env';
 
 @Injectable()
 export class UsersService {
@@ -102,5 +106,31 @@ export class UsersService {
     if (!user) throw new NotFoundException('User not found');
 
     return user;
+  }
+
+  async uploadImage(file: Express.Multer.File, userId: string) {
+    try {
+      const filename = `${randomUUID()}-${file.originalname}`;
+      await cloudflare.send(
+        new PutObjectCommand({
+          Bucket: env.R2_BUCKET,
+          Key: filename,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+        }),
+      );
+
+      const publicUrl = `${env.R2_ENDPOINT}/${env.R2_BUCKET}/${filename}`;
+
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          imageUrl: publicUrl,
+        },
+      });
+      return { message: `Image uploaded`, url: publicUrl };
+    } catch (error) {
+      console.log(error);
+    }
   }
 }

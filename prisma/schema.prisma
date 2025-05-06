@@ -21,6 +21,7 @@ model User {
   role                       Role                         @default(PATIENT)
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime                     @updatedAt
+  imageUrl                   String?
   licenseNumber              String?                      @unique
   stripeCustomerId           String?                      @unique
   feelings                   Feeling[]
