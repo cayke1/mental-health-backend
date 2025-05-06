@@ -19,6 +19,7 @@ import { TherapySessionModule } from './therapy-session/therapy-session.module';
 import { UploadModule } from './upload/upload.module';
 import { DocumentService } from './document/document.service';
 import { DocumentModule } from './document/document.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
@@ -36,6 +37,11 @@ import { DocumentModule } from './document/document.module';
     TherapySessionModule,
     UploadModule,
     DocumentModule,
+    MulterModule.register({
+      limits: {
+        fileSize: 50 * 1024 * 1024,
+      },
+    }),
   ],
   controllers: [AppController, StripeWebhookController],
   providers: [
