@@ -17,6 +17,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TasksModule } from './tasks/tasks.module';
 import { TherapySessionModule } from './therapy-session/therapy-session.module';
 import { UploadModule } from './upload/upload.module';
+import { DocumentService } from './document/document.service';
+import { DocumentModule } from './document/document.module';
 
 @Module({
   imports: [
@@ -33,6 +35,7 @@ import { UploadModule } from './upload/upload.module';
     TasksModule,
     TherapySessionModule,
     UploadModule,
+    DocumentModule,
   ],
   controllers: [AppController, StripeWebhookController],
   providers: [
@@ -45,6 +48,7 @@ import { UploadModule } from './upload/upload.module';
       provide: 'APP_GUARD',
       useClass: RolesGuard,
     },
+    DocumentService,
   ],
 })
 export class AppModule {}
