@@ -13,6 +13,7 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,
+    Headers: 'Content-Type, Authorization',
   });
   app.use('/stripe-webhook', raw({ type: 'application/json' }));
 
