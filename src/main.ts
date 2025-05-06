@@ -2,13 +2,13 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 import { AppModule } from './app.module';
-import bodyParser, { raw } from 'body-parser';
+import { raw, json, urlencoded } from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.use('/stripe-webhook', raw({ type: 'application/json' }));
-  app.use(bodyParser.json({ limit: '50mb' }));
-  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
+  app.use(json({ limit: '50mb' }));
+  app.use(urlencoded({ limit: '50mb', extended: true }));
   app.enableCors({
     origin: ['http://localhost:3000', 'https://mindsereno.caykedev.com'],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
