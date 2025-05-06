@@ -40,6 +40,8 @@ export class AuthService {
       email: user.email,
       name: user.name,
       role: user.role,
+      imageUrl: user.imageUrl,
+      plan: user.Subscription?.plan,
     };
   }
 
