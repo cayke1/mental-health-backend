@@ -2,10 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { SwaggerTheme, SwaggerThemeNameEnum } from 'swagger-themes';
 import { AppModule } from './app.module';
-import { raw } from 'body-parser';
+import bodyParser, { raw } from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use(bodyParser.json({ limit: '50mb' }));
+  app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
   app.enableCors({
     origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
@@ -13,6 +15,7 @@ async function bootstrap() {
     optionsSuccessStatus: 204,
   });
   app.use('/stripe-webhook', raw({ type: 'application/json' }));
+
 
   const config = new DocumentBuilder()
     .setTitle('Cats example')
