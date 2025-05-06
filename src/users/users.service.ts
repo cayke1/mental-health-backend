@@ -9,6 +9,7 @@ import { randomUUID } from 'node:crypto';
 import { cloudflare } from 'src/upload/utils/cloudflare.config';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { env } from 'src/env';
+import { toUrlFriendlyString } from 'src/utils';
 
 @Injectable()
 export class UsersService {
@@ -110,7 +111,7 @@ export class UsersService {
 
   async uploadImage(file: Express.Multer.File, userId: string) {
     try {
-      const filename = `${randomUUID()}-${file.originalname}`;
+      const filename = `${randomUUID()}-${toUrlFriendlyString(file.originalname)}`;
       await cloudflare.send(
         new PutObjectCommand({
           Bucket: env.R2_BUCKET,
@@ -120,7 +121,7 @@ export class UsersService {
         }),
       );
 
-      const publicUrl = `${env.R2_ENDPOINT}/${env.R2_BUCKET}/${filename}`;
+      const publicUrl = `${env.CDN_URL}/${filename}`;
 
       const user = await this.prisma.user.update({
         where: { id: userId },

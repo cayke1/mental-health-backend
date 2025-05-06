@@ -5,6 +5,7 @@ const schema = z.object({
   R2_ACCESS_KEY_ID: z.string(),
   R2_SECRET_ACCESS_KEY: z.string(),
   R2_BUCKET: z.string(),
+  CDN_URL: z.string().url(),
 });
 
 export const env = schema.parse(process.env);
