@@ -80,4 +80,37 @@ export class DocumentService {
         );
     }
   }
+
+  async getDocumentsForPatient(userId: string) {
+    return this.prisma.document.findMany({
+      where: {
+        OR: [{ owner_id: userId }],
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async getDocumentsForProfessional(userId: string) {
+    return this.prisma.document.findMany({
+      where: {
+        OR: [{ updated_by_id: userId }, { owner_id: userId }],
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async getModels() {
+    return this.prisma.document.findMany({
+      where: {
+        category: 'MODEL',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }
