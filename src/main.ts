@@ -6,6 +6,7 @@ import bodyParser, { raw } from 'body-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.use('/stripe-webhook', raw({ type: 'application/json' }));
   app.use(bodyParser.json({ limit: '50mb' }));
   app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
   app.enableCors({
@@ -13,9 +14,8 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     preflightContinue: false,
     optionsSuccessStatus: 204,
-    Headers: 'Content-Type, Authorization',
+    allowedHeaders: 'Content-Type, Authorization',
   });
-  app.use('/stripe-webhook', raw({ type: 'application/json' }));
 
 
   const config = new DocumentBuilder()
