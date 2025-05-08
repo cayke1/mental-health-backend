@@ -1,11 +1,24 @@
-import { IsEnum, IsOptional, IsUUID } from 'class-validator';
-import { DocumentCategory } from '@prisma/client';
+import {
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { DocumentType } from '@prisma/client';
 
 export class UploadDocumentDto {
-  @IsEnum(DocumentCategory)
-  category: DocumentCategory;
+  @IsEnum(DocumentType)
+  type: DocumentType;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
 
   @IsOptional()
   @IsUUID()
-  ownerId?: string; // paciente, se aplicável
+  ownerId?: string;
+
+  @IsOptional()
+  @IsString()
+  isPublic?: string;
 }

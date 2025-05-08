@@ -4,10 +4,9 @@ export const OneMonthAheadUnix = () => {
   return ONE_MONTH_AHEAD;
 };
 
-
 export function toUrlFriendlyString(input: string): string {
   if (!input) return '';
-  
+
   return input
     .toLowerCase()
     .normalize('NFD')
@@ -16,4 +15,9 @@ export function toUrlFriendlyString(input: string): string {
     .replace(/[^a-z0-9-]/g, '')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '');
+}
+
+export function normalizeString(str: string): string {
+  const normalized = str.replace(/[^a-zA-Z0-9 ]/g, '');
+  return normalized;
 }
