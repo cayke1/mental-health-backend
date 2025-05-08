@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
 }
 
 datasource db {
@@ -131,23 +132,27 @@ model TherapySession {
 }
 
 model Document {
-  id        String           @id @unique @default(uuid())
+  id        String       @id @unique @default(uuid())
   url       String
   filename  String
   mimeType  String
-  category  DocumentCategory
-  createdAt DateTime         @default(now())
+  type      DocumentType
+  category  String?
+  createdAt DateTime     @default(now())
+  isPublic  Boolean      @default(false)
 
-  updated_by_id String?
-  updated_by    User?   @relation("UploadedDocuments", fields: [updated_by_id], references: [id])
-  owner_id      String?
-  owner         User?   @relation("OwnedDocuments", fields: [owner_id], references: [id])
+  uploaded_by_id String?
+  uploaded_by    User?   @relation("UploadedDocuments", fields: [uploaded_by_id], references: [id])
+  owner_id       String?
+  owner          User?   @relation("OwnedDocuments", fields: [owner_id], references: [id])
 }
 
-enum DocumentCategory {
+enum DocumentType {
   MODEL
   PATIENT_UPLOAD
   PROFESSIONAL_UPLOAD
+  PATIENT_TO_PROFESSIONAL
+  PROFESSIONAL_TO_PATIENT
 }
 
 enum InviteStatus {

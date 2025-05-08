@@ -1,5 +1,11 @@
-import { IsEnum, IsOptional, IsUUID } from 'class-validator';
-import { DocumentCategory } from '@prisma/client';
+import {
+  IsBoolean,
+  IsEnum,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
+import { DocumentType } from '@prisma/client';
 
 export class GetDocumentsDto {
   @IsOptional()
@@ -11,6 +17,14 @@ export class GetDocumentsDto {
   uploadedById?: string;
 
   @IsOptional()
-  @IsEnum(DocumentCategory)
-  category?: DocumentCategory;
+  @IsEnum(DocumentType)
+  type?: DocumentType;
+
+  @IsOptional()
+  @IsBoolean()
+  isPublic?: boolean;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
 }
