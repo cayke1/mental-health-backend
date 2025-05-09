@@ -21,3 +21,10 @@ export function normalizeString(str: string): string {
   const normalized = str.replace(/[^a-zA-Z0-9 ]/g, '');
   return normalized;
 }
+
+export function extractKeyFromURL(url: string): string {
+  const keyWord = 'sereno/';
+  const index = url.indexOf(keyWord);
+  if (index === -1) return '';
+  return url.substring(index + keyWord.length);
+}
