@@ -7,9 +7,9 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePatientDto, CreateUserDto } from './dtos/CreateUserDto';
 import { randomUUID } from 'node:crypto';
 import { cloudflare } from 'src/upload/utils/cloudflare.config';
-import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { env } from 'src/env';
-import { toUrlFriendlyString } from 'src/utils';
+import { extractKeyFromURL, toUrlFriendlyString } from 'src/utils';
 
 @Injectable()
 export class UsersService {
@@ -111,23 +111,39 @@ export class UsersService {
 
   async uploadImage(file: Express.Multer.File, userId: string) {
     try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { imageUrl: true },
+      });
+
+      if (!user) throw new NotFoundException('User not found');
+
+      if (user.imageUrl) {
+        const key = extractKeyFromURL(user.imageUrl);
+        await cloudflare.send(
+          new DeleteObjectCommand({
+            Bucket: env.R2_BUCKET,
+            Key: key,
+          }),
+        );
+      }
+
       const filename = `${randomUUID()}-${toUrlFriendlyString(file.originalname)}`;
+      const key = `images/${userId}/${filename}`;
       await cloudflare.send(
         new PutObjectCommand({
           Bucket: env.R2_BUCKET,
-          Key: filename,
+          Key: key,
           Body: file.buffer,
           ContentType: file.mimetype,
         }),
       );
 
-      const publicUrl = `${env.CDN_URL}/${filename}`;
+      const publicUrl = `${env.CDN_URL}/${key}`;
 
-      const user = await this.prisma.user.update({
+      await this.prisma.user.update({
         where: { id: userId },
-        data: {
-          imageUrl: publicUrl,
-        },
+        data: { imageUrl: publicUrl },
       });
       return { message: `Image uploaded`, url: publicUrl };
     } catch (error) {
