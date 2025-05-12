@@ -10,6 +10,16 @@ import { normalizeString, toUrlFriendlyString } from 'src/utils';
 export class DocumentService {
   constructor(private prisma: PrismaService) {}
 
+  private _userOrPublicFilter(userId: string) {
+    return {
+      OR: [
+        { owner_id: userId },
+        { uploaded_by_id: userId },
+        { isPublic: true },
+      ],
+    };
+  }
+
   async uploadDocument({
     file,
     category,
@@ -105,71 +115,47 @@ export class DocumentService {
     }
   }
 
-  async getMyDocuments(userId: string) {
+  async getUserDocuments(userId: string) {
     return this.prisma.document.findMany({
-      where: {
-        OR: [
-          { owner_id: userId },
-          { uploaded_by_id: userId },
-          { isPublic: true },
-        ],
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where: this._userOrPublicFilter(userId),
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  async getDocumentByCategory(category: string, userId: string) {
-    if (!category) return;
+  async getDocumentsByCategory(userId: string, category: string) {
+    if (!category) return [];
     return this.prisma.document.findMany({
       where: {
-        category: {
-          search: normalizeString(category),
-        },
-        OR: [
-          { owner_id: userId },
-          { uploaded_by_id: userId },
-          { isPublic: true },
-        ],
-        NOT: {
-          isPublic: true,
-        },
+        category: { search: normalizeString(category) },
+        ...this._userOrPublicFilter(userId),
+        NOT: { isPublic: true }, // ignora públicos
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  async getPatientsDocs(userId: string) {
+  async getDocumentsSharedWithProfessional(patientId: string) {
     return this.prisma.document.findMany({
       where: {
-        owner_id: userId,
-        OR: [
-          { type: 'PATIENT_TO_PROFESSIONAL' },
-          { type: 'PROFESSIONAL_TO_PATIENT' },
-        ],
+        owner_id: patientId,
+        type: { in: ['PATIENT_TO_PROFESSIONAL', 'PROFESSIONAL_TO_PATIENT'] },
       },
-      include: {
-        uploaded_by: true,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      include: { uploaded_by: true },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
-  async getProfessionalDocs(professionalId: string, userId: string) {
+  async getDocumentsFromProfessional(
+    professionalId: string,
+    patientId: string,
+  ) {
     return this.prisma.document.findMany({
       where: {
-        owner_id: userId,
-        type: 'PROFESSIONAL_TO_PATIENT',
         uploaded_by_id: professionalId,
+        owner_id: patientId,
+        type: 'PROFESSIONAL_TO_PATIENT',
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      orderBy: { createdAt: 'desc' },
     });
   }
 

@@ -58,7 +58,7 @@ export class DocumentController {
   @ApiOperation({ summary: 'Get documents uploaded by the current user' })
   @ApiResponse({ status: 200, description: 'List of documents' })
   async getMyDocuments(@Request() req: AuthenticatedRequest) {
-    return this.documentService.getMyDocuments(req.user.sub);
+    return this.documentService.getUserDocuments(req.user.sub);
   }
 
   @Get('professional')
@@ -70,7 +70,7 @@ export class DocumentController {
     @Request() req: AuthenticatedRequest,
     @Query('professionalId') professionalId: string,
   ) {
-    return this.documentService.getProfessionalDocs(
+    return this.documentService.getDocumentsFromProfessional(
       professionalId,
       req.user.sub,
     );
@@ -85,7 +85,7 @@ export class DocumentController {
     @Query('category') category: string,
     @Request() req: AuthenticatedRequest,
   ) {
-    return this.documentService.getDocumentByCategory(category, req.user.sub);
+    return this.documentService.getDocumentsByCategory(category, req.user.sub);
   }
 
   @Get('patients')
@@ -93,7 +93,7 @@ export class DocumentController {
   @ApiOperation({ summary: 'Get documents from all patients (for professionals)' })
   @ApiResponse({ status: 200, description: 'Documents of all patients' })
   async getPatientsDocs(@Request() req: AuthenticatedRequest) {
-    return this.documentService.getPatientsDocs(req.user.sub);
+    return this.documentService.getDocumentsSharedWithProfessional(req.user.sub);
   }
 
   @Get('models')
