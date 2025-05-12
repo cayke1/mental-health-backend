@@ -134,15 +134,31 @@ export class DocumentService {
     });
   }
 
-  async getDocumentsSharedWithProfessional(patientId: string) {
-    return this.prisma.document.findMany({
+  async getDocumentsSharedWithProfessional(professionalId: string) {
+    const patients = await this.prisma.professionalPatient.findMany({
       where: {
-        owner_id: patientId,
+        professionalId,
+      },
+      select: { patientId: true },
+    });
+
+    const patientIds = patients.map((p) => p.patientId);
+
+    if (patientIds.length === 0) return [];
+
+    const documents = await this.prisma.document.findMany({
+      where: {
         type: { in: ['PATIENT_TO_PROFESSIONAL', 'PROFESSIONAL_TO_PATIENT'] },
+        OR: [
+          { owner_id: { in: patientIds } },
+          { uploaded_by_id: { in: patientIds } },
+        ],
       },
       include: { uploaded_by: true },
       orderBy: { createdAt: 'desc' },
     });
+
+    return documents;
   }
 
   async getDocumentsFromProfessional(
