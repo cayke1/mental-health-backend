@@ -66,7 +66,7 @@ export class DocumentService {
     ownerId?: string,
     isPublic?: boolean,
   ): string {
-    console.log(isPublic)
+    console.log(isPublic);
     switch (type) {
       case 'MODEL': {
         return 'documents/models';
@@ -146,7 +146,10 @@ export class DocumentService {
     return this.prisma.document.findMany({
       where: {
         owner_id: userId,
-        type: 'PATIENT_TO_PROFESSIONAL',
+        OR: [
+          { type: 'PATIENT_TO_PROFESSIONAL' },
+          { type: 'PROFESSIONAL_TO_PATIENT' },
+        ],
       },
       include: {
         uploaded_by: true,

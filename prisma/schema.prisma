@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearchPostgres"]
@@ -22,18 +16,17 @@ model User {
   role                       Role                         @default(PATIENT)
   createdAt                  DateTime                     @default(now())
   updatedAt                  DateTime                     @updatedAt
-  imageUrl                   String?
   licenseNumber              String?                      @unique
   stripeCustomerId           String?                      @unique
-  feelings                   Feeling[]
+  imageUrl                   String?
   DailyPositiveReinforcement DailyPositiveReinforcement[]
-  Subscription               Subscription?
+  Document                   Document[]                   @relation("OwnedDocuments")
+  uploadedDocuments          Document[]                   @relation("UploadedDocuments")
+  feelings                   Feeling[]
   Invite                     Invite[]
-
-  professionals     ProfessionalPatient[] @relation("ProfessionalPatients_professional")
-  patients          ProfessionalPatient[] @relation("ProfessionalPatients_patient")
-  uploadedDocuments Document[]            @relation("UploadedDocuments")
-  Document          Document[]            @relation("OwnedDocuments")
+  patients                   ProfessionalPatient[]        @relation("ProfessionalPatients_patient")
+  professionals              ProfessionalPatient[]        @relation("ProfessionalPatients_professional")
+  Subscription               Subscription?
 }
 
 model Subscription {
@@ -45,44 +38,19 @@ model Subscription {
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   expiresAt      DateTime
-
-  professional User @relation(fields: [professionalId], references: [id])
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  CANCELLED
-  PAST_DUE
-}
-
-enum Plan {
-  BASIC
-  UNLIMITED
+  professional   User               @relation(fields: [professionalId], references: [id])
 }
 
 model Feeling {
   id          String   @id @default(uuid())
-  emotion     Emotion
-  intensity   Int
-  trigger     String?
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   userId      String
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-enum Emotion {
-  JOY
-  SADNESS
-  ANGER
-  FEAR
-  ANXIETY
-  CALM
-  FRUSTRATION
-  SURPRISE
-  NON_SPECIFIC
+  emotion     Emotion
+  intensity   Int
+  trigger     String?
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model DailyPositiveReinforcement {
@@ -101,50 +69,69 @@ model ProfessionalPatient {
   professionalId String
   patientId      String
   createdAt      DateTime         @default(now())
+  patient        User             @relation("ProfessionalPatients_patient", fields: [patientId], references: [id])
+  professional   User             @relation("ProfessionalPatients_professional", fields: [professionalId], references: [id])
   TherapySession TherapySession[]
-
-  professional User @relation("ProfessionalPatients_professional", fields: [professionalId], references: [id])
-  patient      User @relation("ProfessionalPatients_patient", fields: [patientId], references: [id])
 }
 
 model Invite {
-  id        String       @id @unique @default(uuid())
-  sent_by   String
-  sent_to   String
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  status    InviteStatus
-
-  professional User @relation(fields: [sent_by], references: [id])
+  id           String       @id @unique @default(uuid())
+  sent_by      String
+  sent_to      String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  status       InviteStatus
+  professional User         @relation(fields: [sent_by], references: [id])
 }
 
 model TherapySession {
-  id                    Int      @id @unique @default(autoincrement())
+  id                    Int                 @id @unique @default(autoincrement())
   professionalPatientId String
-  done                  Boolean? @default(false)
-  confirmed             Boolean? @default(false)
+  done                  Boolean?            @default(false)
+  confirmed             Boolean?            @default(false)
   startDate             DateTime
   endDate               DateTime
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-
-  professionalPatient ProfessionalPatient @relation(fields: [professionalPatientId], references: [id])
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+  professionalPatient   ProfessionalPatient @relation(fields: [professionalPatientId], references: [id])
 }
 
 model Document {
-  id        String       @id @unique @default(uuid())
-  url       String
-  filename  String
-  mimeType  String
-  type      DocumentType
-  category  String?
-  createdAt DateTime     @default(now())
-  isPublic  Boolean      @default(false)
-
-  uploaded_by_id String?
-  uploaded_by    User?   @relation("UploadedDocuments", fields: [uploaded_by_id], references: [id])
+  id             String       @id @unique @default(uuid())
+  url            String
+  filename       String
+  mimeType       String
+  createdAt      DateTime     @default(now())
   owner_id       String?
-  owner          User?   @relation("OwnedDocuments", fields: [owner_id], references: [id])
+  isPublic       Boolean      @default(false)
+  type           DocumentType
+  uploaded_by_id String?
+  category       String?
+  owner          User?        @relation("OwnedDocuments", fields: [owner_id], references: [id])
+  uploaded_by    User?        @relation("UploadedDocuments", fields: [uploaded_by_id], references: [id])
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  PAST_DUE
+}
+
+enum Plan {
+  BASIC
+  UNLIMITED
+}
+
+enum Emotion {
+  JOY
+  SADNESS
+  ANGER
+  FEAR
+  ANXIETY
+  CALM
+  FRUSTRATION
+  SURPRISE
+  NON_SPECIFIC
 }
 
 enum DocumentType {
