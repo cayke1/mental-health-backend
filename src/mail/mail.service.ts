@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { Resend } from 'resend';
+import { env } from 'src/env';
 
 @Injectable()
 export class MailService {
   private resend: Resend;
-  private from = process.env.EMAIL_FROM || 'Acme <onboarding@resend.dev>';
+  private from = env.EMAIL_FROM || 'Acme <onboarding@resend.dev>';
   constructor() {
     this.resend = new Resend(process.env.RESEND_API_KEY);
   }
