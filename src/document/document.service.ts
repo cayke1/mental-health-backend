@@ -154,7 +154,7 @@ export class DocumentService {
           { uploaded_by_id: { in: patientIds } },
         ],
       },
-      include: { uploaded_by: true },
+      include: { uploaded_by: true, owner: true },
       orderBy: { createdAt: 'desc' },
     });
 
