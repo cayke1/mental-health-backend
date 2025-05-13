@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
   Post,
   Query,
   Request,
@@ -112,7 +113,7 @@ export class DocumentController {
   @ApiResponse({ status: 404, description: 'Document not found' })
   async deleteDocument(
     @Request() req: AuthenticatedRequest,
-    @Query('id') id: string,
+    @Param('id') id: string,
   ) {
     return this.documentService.deleteDocument(id, req.user.sub);
   }
