@@ -1,5 +1,9 @@
 import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { DocumentType } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { env } from 'src/env';
@@ -192,7 +196,7 @@ export class DocumentService {
     });
   }
 
-  async deleteDocument(userId: string, documentId: string) {
+  async deleteDocument(documentId: string, userId: string) {
     const document = await this.prisma.document.findUnique({
       where: { id: documentId },
     });
@@ -202,7 +206,9 @@ export class DocumentService {
     }
 
     if (document.uploaded_by_id !== userId) {
-      throw new UnauthorizedException(`User ${userId} doesn't uploaded document ${documentId}`);
+      throw new UnauthorizedException(
+        `User ${userId} doesn't uploaded document ${documentId}`,
+      );
     }
 
     try {

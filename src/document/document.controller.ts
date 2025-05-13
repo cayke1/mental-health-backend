@@ -91,21 +91,15 @@ export class DocumentController {
 
   @Get('patients')
   @Roles([Role.PROFESSIONAL])
-  @ApiOperation({
-    summary: 'Get documents from all patients (for professionals)',
-  })
+  @ApiOperation({ summary: 'Get documents from all patients (for professionals)' })
   @ApiResponse({ status: 200, description: 'Documents of all patients' })
   async getPatientsDocs(@Request() req: AuthenticatedRequest) {
-    return this.documentService.getDocumentsSharedWithProfessional(
-      req.user.sub,
-    );
+    return this.documentService.getDocumentsSharedWithProfessional(req.user.sub);
   }
 
   @Get('models')
   @Roles([Role.PROFESSIONAL])
-  @ApiOperation({
-    summary: 'Get document models (optionally filtered by category)',
-  })
+  @ApiOperation({ summary: 'Get document models (optionally filtered by category)' })
   @ApiQuery({ name: 'category', required: false })
   @ApiResponse({ status: 200, description: 'List of document models' })
   async getModels(@Query('category') category?: string) {
@@ -113,12 +107,11 @@ export class DocumentController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a document' })
+  @ApiOperation({summary: 'Delete a document'})
   @ApiResponse({ status: 200, description: 'Document deleted successfully' })
   @ApiResponse({ status: 404, description: 'Document not found' })
   async deleteDocument(
     @Request() req: AuthenticatedRequest,
-
     @Query('id') id: string,
   ) {
     return this.documentService.deleteDocument(id, req.user.sub);
