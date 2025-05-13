@@ -1,11 +1,15 @@
-import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { Injectable } from '@nestjs/common';
+import { DeleteObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { DocumentType } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { env } from 'src/env';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { cloudflare } from 'src/upload/utils/cloudflare.config';
-import { normalizeString, toUrlFriendlyString } from 'src/utils';
+import {
+  extractKeyFromURL,
+  normalizeString,
+  toUrlFriendlyString,
+} from 'src/utils';
 @Injectable()
 export class DocumentService {
   constructor(private prisma: PrismaService) {}
@@ -186,5 +190,36 @@ export class DocumentService {
         createdAt: 'desc',
       },
     });
+  }
+
+  async deleteDocument(userId: string, documentId: string) {
+    const document = await this.prisma.document.findUnique({
+      where: { id: documentId },
+    });
+
+    if (!document) {
+      throw new NotFoundException(`Document with id ${documentId} not found`);
+    }
+
+    if (document.uploaded_by_id !== userId) {
+      throw new UnauthorizedException(`User ${userId} doesn't uploaded document ${documentId}`);
+    }
+
+    try {
+      const key = extractKeyFromURL(document.url);
+      await cloudflare.send(
+        new DeleteObjectCommand({
+          Bucket: env.R2_BUCKET,
+          Key: key,
+        }),
+      );
+
+      await this.prisma.document.delete({
+        where: { id: documentId },
+      });
+      return { deleted: true };
+    } catch (error) {
+      throw error;
+    }
   }
 }
