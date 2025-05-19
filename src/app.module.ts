@@ -20,6 +20,7 @@ import { UploadModule } from './upload/upload.module';
 import { DocumentService } from './document/document.service';
 import { DocumentModule } from './document/document.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { LoggerModule } from './logger/logger.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { MulterModule } from '@nestjs/platform-express';
         fileSize: 50 * 1024 * 1024,
       },
     }),
+    LoggerModule,
   ],
   controllers: [AppController, StripeWebhookController],
   providers: [
