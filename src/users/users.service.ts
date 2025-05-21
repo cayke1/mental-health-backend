@@ -157,4 +157,30 @@ export class UsersService {
       console.log(error);
     }
   }
+
+  async updateResetToken(id: string, token: string | null) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { resetToken: token },
+    });
+  }
+
+  async updateUserPassword(id: string, password: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+    });
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return this.prisma.user.update({
+      where: { id },
+      data: { password },
+    });
+  }
 }

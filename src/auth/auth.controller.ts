@@ -168,4 +168,18 @@ export class AuthController {
     }
     return req.user;
   }
+
+  @Post('forgot-password')
+  @Public()
+  async forgotPassword(@Body() { email }: { email: string }) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  @Public()
+  async resetPassword(
+    @Body() { token, password }: { token: string; password: string },
+  ) {
+    return this.authService.resetPassword(token, password);
+  }
 }

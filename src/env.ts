@@ -7,6 +7,7 @@ const schema = z.object({
   R2_BUCKET: z.string(),
   CDN_URL: z.string().url(),
   EMAIL_FROM: z.string(),
+  RESEND_API_KEY: z.string(),
   DISCORD_LOG_PROJECT_ID: z.string(),
   DISCORD_LOG_WEBHOOK_URL: z.string().url(),
 });

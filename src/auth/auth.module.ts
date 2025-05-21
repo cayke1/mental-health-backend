@@ -5,11 +5,13 @@ import { UsersModule } from 'src/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from './constants';
 import { SubscriptionModule } from 'src/subscription/subscription.module';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
     UsersModule,
     SubscriptionModule,
+    MailModule,
     JwtModule.register({
       global: true,
       secret: jwtConstants.secret,

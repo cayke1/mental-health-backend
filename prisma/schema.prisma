@@ -19,6 +19,7 @@ model User {
   licenseNumber              String?                      @unique
   stripeCustomerId           String?                      @unique
   imageUrl                   String?
+  resetToken                 String?
   DailyPositiveReinforcement DailyPositiveReinforcement[]
   Document                   Document[]                   @relation("OwnedDocuments")
   uploadedDocuments          Document[]                   @relation("UploadedDocuments")
