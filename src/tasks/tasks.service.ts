@@ -47,7 +47,11 @@ export class TasksService {
         });
 
         try {
-          const data = await this.mail.sendFeelingReminder(patient.email, html);
+          const data = await this.mail.sendMail(
+            patient.email,
+            html,
+            'Lembrete de registro de sentimento diário',
+          );
           this.logger.log(
             `Email sent to ${patient.email} with status: ${JSON.stringify(data)}`,
           );

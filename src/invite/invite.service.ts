@@ -71,7 +71,7 @@ export class InviteService {
       ctaUrl: `${process.env.FRONTEND_URL}/invite-link/link/${professional.id}`,
     });
 
-    const mail = await this.mailService.sendInvitationMail(patient.email, html);
+    const mail = await this.mailService.sendMail(patient.email, html, 'Convite recebido');
 
     return { invite, mail };
   }
@@ -96,7 +96,7 @@ export class InviteService {
       ctaUrl: `${process.env.FRONTEND_URL}/invite-link/register/${professional.id}`,
     });
 
-    const mail = await this.mailService.sendInvitationMail(patient_email, html);
+    const mail = await this.mailService.sendMail(patient_email, html, 'Convite recebido');
 
     return { invite, mail };
   }

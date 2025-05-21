@@ -9,27 +9,11 @@ export class MailService {
   constructor() {
     this.resend = new Resend(process.env.RESEND_API_KEY);
   }
-  async sendInvitationMail(recipientEmail: string, html: string) {
+  async sendMail(recipientEmail: string, html: string, subject: string) {
     const { data, error } = await this.resend.emails.send({
       from: this.from,
       to: recipientEmail,
-      subject: 'Convite recebido',
-      html,
-    });
-
-    if (error) {
-      console.error('Error sending email:', error);
-      throw new Error('Error sending email');
-    }
-
-    return data;
-  }
-
-  async sendFeelingReminder(recipientEmail: string, html: string) {
-    const { data, error } = await this.resend.emails.send({
-      from: this.from,
-      to: recipientEmail,
-      subject: 'Lembrete de registro de sentimento diário',
+      subject,
       html,
     });
 
