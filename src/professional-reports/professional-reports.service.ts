@@ -14,6 +14,8 @@ export class ProfessionalReportsService {
           select: {
             id: true,
             name: true,
+            email: true,
+            createdAt: true,
             feelings: {
               select: {
                 emotion: true,
