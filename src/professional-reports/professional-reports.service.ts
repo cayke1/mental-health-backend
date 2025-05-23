@@ -65,6 +65,8 @@ export class ProfessionalReportsService {
       return {
         id: patient.id,
         name: patient.name,
+        email: patient.email,
+        createdAt: patient.createdAt,
         lastSession,
         nextSession,
         emotionScore,
