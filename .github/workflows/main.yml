@@ -1,0 +1,60 @@
+name: Deploy Nest
+
+on:
+  push: 
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  REGISTRY: docker.io
+  REPO: ${{secrets.DOCKERHUB_USERNAME}}/sereno-back
+  CONTAINER: sereno-back
+  PORT: 3000
+jobs:
+  push_to_registry:
+    name: Push Docker image to Docker Hub
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ env.REPO }}:latest
+  deploy:
+    needs: [push_to_registry]
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup SSH connection
+        uses: webfactory/ssh-agent@v0.5.3
+        with: 
+          ssh-private-key: ${{ secrets.SSH_KEY }}
+
+      - name: Adding Known Hosts
+        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Login to Docker Hub on VPS
+        run: |
+          ssh ${{ secrets.SSH_USER}}@${{ secrets.SSH_HOST }} "echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin"
+      - name: Pull latest image
+        run : |
+           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker pull ${REGISTRY}/${REPO}:latest"
+      - name: Stop and remove previous container
+        continue-on-error: true
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker stop ${{ env.CONTAINER }} && docker rm ${{ env.CONTAINER }}"
+      - name: Run new container
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker run -p ${{ env.PORT }}:${{ env.PORT }} -d --restart unless-stopped --name=${{ env.CONTAINER }} --env-file={{ secrets.ENV_PATH }} ${REGISTRY}/${REPO}:latest"
+      - name: Docker Logout
+        run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker logout"
