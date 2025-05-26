@@ -90,7 +90,7 @@ export class InviteService {
       heading: 'Convite recebido',
       body: `Você foi convidado por ${professional.name} para liderar seu tratamento.`,
       ctaText: 'Aceitar convite',
-      ctaUrl: `${process.env.FRONTEND_URL}/invite-link/link/${professional.id}`,
+      ctaUrl: `${process.env.FRONTEND_URL}/invite-link/link/${invite.id}`,
     });
 
     const mail = await this.mailService.sendMail(
@@ -160,6 +160,56 @@ export class InviteService {
     });
 
     return { message: 'Invite accepted successfully' };
+  }
+
+  async accept_registered(invite_id: string, patient_id: string) {
+    const invite = await this.prisma.invite.findFirst({
+      where: {
+        id: invite_id,
+        sent_to: patient_id,
+      },
+    });
+
+    if (!invite) throw new NotFoundException('Invite not found');
+
+    if (invite.status !== 'PENDING') {
+      throw new BadRequestException('Invite already accepted or rejected');
+    }
+
+    // Check if the patient is already linked to any professional
+    const existingLink = await this.prisma.professionalPatient.findFirst({
+      where: {
+        patientId: patient_id,
+      },
+    });
+    if (existingLink) {
+      await this.prisma.professionalPatient.deleteMany({
+        where: {
+          patientId: patient_id,
+        },
+      });
+    }
+
+    const professionalPatient = await this.prisma.professionalPatient.create({
+      data: {
+        professionalId: invite.sent_by,
+        patientId: patient_id,
+      },
+    });
+
+    await this.prisma.invite.update({
+      where: {
+        id: invite.id,
+      },
+      data: {
+        status: 'ACCEPTED',
+      },
+    });
+
+    return {
+      message: 'Invite accepted successfully',
+      relation: professionalPatient,
+    };
   }
 
   async reject_invite(invite_id: string, patient_id: string) {
