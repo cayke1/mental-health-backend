@@ -55,6 +55,6 @@ jobs:
           ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker stop ${{ env.CONTAINER }} && docker rm ${{ env.CONTAINER }}"
       - name: Run new container
         run: |
-          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker run -p ${{ env.PORT }}:${{ env.PORT }} -d --restart unless-stopped --name=${{ env.CONTAINER }} --env-file={{ secrets.ENV_PATH }} ${REGISTRY}/${REPO}:latest"
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker run -p ${{ env.PORT }}:${{ env.PORT }} -d --restart unless-stopped --name=${{ env.CONTAINER }} --env-file="/home/cayke/env/.env" ${REGISTRY}/${REPO}:latest"
       - name: Docker Logout
         run: ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "docker logout"
