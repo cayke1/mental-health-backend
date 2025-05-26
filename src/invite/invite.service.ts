@@ -114,20 +114,6 @@ export class InviteService {
     if (existingInvite) {
       throw new BadRequestException('Invite already exists for this email');
     }
-
-    const html = getEmailTemplate({
-      heading: 'Convite recebido',
-      body: `Você foi convidado por ${professional.name} para liderar seu tratamento.`,
-      ctaText: 'Aceitar convite',
-      ctaUrl: `${process.env.FRONTEND_URL}/invite-link/register/${professional.id}`,
-    });
-
-    try {
-      await this.mailService.sendMail(patient_email, html, 'Convite recebido');
-    } catch (error) {
-      throw new InternalServerErrorException('Erro ao enviar e-mail');
-    }
-
     const invite = await this.prisma.invite.create({
       data: {
         sent_by: professional.id,
@@ -136,16 +122,25 @@ export class InviteService {
       },
     });
 
+    const html = getEmailTemplate({
+      heading: 'Convite recebido',
+      body: `Você foi convidado por ${professional.name} para liderar seu tratamento.`,
+      ctaText: 'Aceitar convite',
+      ctaUrl: `${process.env.FRONTEND_URL}/invite-link/register/${invite}`,
+    });
+
+    try {
+      await this.mailService.sendMail(patient_email, html, 'Convite recebido');
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao enviar e-mail');
+    }
     return { invite };
   }
 
-  async accept_invite(professional_id: string, patient_id: string) {
+  async accept_invite(invite_id: string) {
     const invite = await this.prisma.invite.findFirst({
       where: {
-        sent_by: professional_id,
-        AND: {
-          sent_to: patient_id,
-        },
+        id: invite_id,
       },
     });
 
@@ -154,27 +149,6 @@ export class InviteService {
     if (invite.status !== 'PENDING') {
       throw new BadRequestException('Invite already accepted or rejected');
     }
-
-    const existing_relations = await this.prisma.professionalPatient.findMany({
-      where: {
-        patientId: patient_id,
-      },
-    });
-
-    if (existing_relations.length > 0) {
-      await this.prisma.professionalPatient.deleteMany({
-        where: {
-          patientId: patient_id,
-        },
-      });
-    }
-
-    const relation = await this.prisma.professionalPatient.create({
-      data: {
-        professionalId: invite.sent_by,
-        patientId: patient_id,
-      },
-    });
 
     await this.prisma.invite.update({
       where: {
@@ -185,7 +159,7 @@ export class InviteService {
       },
     });
 
-    return { message: 'Invite accepted successfully', relation };
+    return { message: 'Invite accepted successfully' };
   }
 
   async reject_invite(invite_id: string, patient_id: string) {

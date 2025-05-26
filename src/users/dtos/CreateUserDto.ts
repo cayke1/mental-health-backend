@@ -11,4 +11,5 @@ export interface CreatePatientDto {
   password: string;
   role?: string;
   professional_id: string;
+  invite_id: string;
 }

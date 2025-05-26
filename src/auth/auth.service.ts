@@ -99,7 +99,7 @@ export class AuthService {
       user.email,
       user.name,
     );
-    await this.inviteService.accept_invite(data.professional_id, user.id);
+    await this.inviteService.accept_invite(data.invite_id);
     await this.usersService.updateStripeCustomerId(customer.id, user.email);
     return {
       access_token: await this.jwtService.signAsync(payload),

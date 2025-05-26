@@ -109,6 +109,7 @@ export class AuthController {
       password: string;
       name: string;
       professional_id: string;
+      invite_id: string;
     },
   ) {
     return this.authService.patientSignup(data);
