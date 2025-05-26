@@ -7,6 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { compare, hash } from 'bcryptjs';
 import { getEmailTemplate } from 'src/custom/emailtemplates/base';
+import { InviteService } from 'src/invite/invite.service';
 import { MailService } from 'src/mail/mail.service';
 import { SubscriptionService } from 'src/subscription/subscription.service';
 import { CreatePatientDto, CreateUserDto } from 'src/users/dtos/CreateUserDto';
@@ -19,6 +20,7 @@ export class AuthService {
     private jwtService: JwtService,
     private subscription: SubscriptionService,
     private mail: MailService,
+    private inviteService: InviteService,
   ) {}
 
   async signIn(data: { email: string; password: string }): Promise<any> {
@@ -97,6 +99,7 @@ export class AuthService {
       user.email,
       user.name,
     );
+    await this.inviteService.accept_invite(data.professional_id, user.id);
     await this.usersService.updateStripeCustomerId(customer.id, user.email);
     return {
       access_token: await this.jwtService.signAsync(payload),

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { User } from '@prisma/client';
@@ -49,10 +50,31 @@ export class InviteService {
 
     return true;
   }
+
+  private async checkIfInviteExists(
+    professional_id: string,
+    patient_id: string,
+  ): Promise<boolean> {
+    const existingInvite = await this.prisma.invite.findFirst({
+      where: {
+        sent_by: professional_id,
+        sent_to: patient_id,
+      },
+    });
+
+    return !!existingInvite;
+  }
   async invite_registered_user(professional: User, patient: User) {
     const subscription = await this.checkSubscription(professional.id);
     if (!subscription) {
       throw new BadRequestException('Subscription limit reached');
+    }
+    const existingInvite = await this.checkIfInviteExists(
+      professional.id,
+      patient.id,
+    );
+    if (existingInvite) {
+      throw new BadRequestException('Invite already exists for this user');
     }
 
     const invite = await this.prisma.invite.create({
@@ -71,7 +93,11 @@ export class InviteService {
       ctaUrl: `${process.env.FRONTEND_URL}/invite-link/link/${professional.id}`,
     });
 
-    const mail = await this.mailService.sendMail(patient.email, html, 'Convite recebido');
+    const mail = await this.mailService.sendMail(
+      patient.email,
+      html,
+      'Convite recebido',
+    );
 
     return { invite, mail };
   }
@@ -81,13 +107,13 @@ export class InviteService {
     if (!subscription) {
       throw new BadRequestException('Subscription limit reached');
     }
-    const invite = await this.prisma.invite.create({
-      data: {
-        sent_by: professional.id,
-        sent_to: patient_email,
-        status: 'PENDING',
-      },
-    });
+    const existingInvite = await this.checkIfInviteExists(
+      professional.id,
+      patient_email,
+    );
+    if (existingInvite) {
+      throw new BadRequestException('Invite already exists for this email');
+    }
 
     const html = getEmailTemplate({
       heading: 'Convite recebido',
@@ -96,16 +122,30 @@ export class InviteService {
       ctaUrl: `${process.env.FRONTEND_URL}/invite-link/register/${professional.id}`,
     });
 
-    const mail = await this.mailService.sendMail(patient_email, html, 'Convite recebido');
+    try {
+      await this.mailService.sendMail(patient_email, html, 'Convite recebido');
+    } catch (error) {
+      throw new InternalServerErrorException('Erro ao enviar e-mail');
+    }
 
-    return { invite, mail };
+    const invite = await this.prisma.invite.create({
+      data: {
+        sent_by: professional.id,
+        sent_to: patient_email,
+        status: 'PENDING',
+      },
+    });
+
+    return { invite };
   }
 
-  async accept_invite(invite_id: string, patient_id: string) {
-    const invite = await this.prisma.invite.findUnique({
+  async accept_invite(professional_id: string, patient_id: string) {
+    const invite = await this.prisma.invite.findFirst({
       where: {
-        id: invite_id,
-        sent_to: patient_id,
+        sent_by: professional_id,
+        AND: {
+          sent_to: patient_id,
+        },
       },
     });
 
