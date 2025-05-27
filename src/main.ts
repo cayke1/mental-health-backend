@@ -10,7 +10,7 @@ async function bootstrap() {
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ limit: '50mb', extended: true }));
   app.enableCors({
-    origin: ['http://localhost:3001', 'https://mindsereno.caykedev.com'],
+    origin: ['http://localhost:3000', 'https://mindsereno.caykedev.com'],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     preflightContinue: false,
