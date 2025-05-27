@@ -35,7 +35,14 @@ export class SubscriptionService {
         ? process.env.STRIPE_BASIC_PRICE_ID
         : process.env.STRIPE_UNLIMITED_PRICE_ID
       : null;
-    console.log(price_id);
+
+    const professional = await this.prisma.user.findUnique({
+      where: {
+        id: professional_id,
+      },
+    });
+
+    if (!professional) throw new NotFoundException('User doesnt exists');
 
     const session = await this.stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -51,6 +58,12 @@ export class SubscriptionService {
       ],
       success_url: `${process.env.FRONTEND_URL}/success`,
       cancel_url: `${process.env.FRONTEND_URL}/cancel`,
+      customer: professional.stripeCustomerId!,
+      customer_update: {
+        name: 'auto',
+        address: 'auto',
+        shipping: 'auto'
+      },
       metadata: {
         professional_id: professional_id,
         plan: plan,
@@ -65,12 +78,15 @@ export class SubscriptionService {
 
   async cancelSubscription(professional_id: string) {
     const subscription = await this.prisma.subscription.findUnique({
-      where: {
-        professionalId: professional_id,
-      },
+      where: { professionalId: professional_id },
     });
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
+    if (!subscription) throw new NotFoundException('Subscription not found');
+
+    const stripeSub = await this.stripe.subscriptions.retrieve(
+      subscription.stripeSubId,
+    );
+    if (!stripeSub || stripeSub.status === 'incomplete') {
+      throw new NotFoundException('Invalid or incomplete Stripe subscription');
     }
 
     const invoices = await this.stripe.invoices.list({
@@ -82,13 +98,20 @@ export class SubscriptionService {
       throw new NotFoundException('No charge found for this subscription');
     }
 
-    const chargeId = invoices.data[0].charge;
+    const chargeRaw = invoices.data[0].charge;
+    const chargeId = typeof chargeRaw === 'string' ? chargeRaw : chargeRaw?.id;
+    if (!chargeId) throw new NotFoundException('Invalid charge');
+
+    const chargeDetails = await this.stripe.charges.retrieve(chargeId);
+    if (chargeDetails.refunded) {
+      throw new Error('Charge already refunded');
+    }
+
     const createdAt = new Date(invoices.data[0].created * 1000);
-    const diffInDays =
-      (new Date().getTime() - createdAt.getTime()) / (1000 * 3600 * 24);
+    const diffInDays = (Date.now() - createdAt.getTime()) / (1000 * 3600 * 24);
 
     if (diffInDays <= 7) {
-      return this.refund(chargeId as string, subscription.stripeSubId);
+      return this.refund(chargeId, subscription.stripeSubId);
     }
     return this.cancelAtEnd(subscription.stripeSubId);
   }
@@ -96,17 +119,13 @@ export class SubscriptionService {
   private async refund(chargeId: string, stripeSubId: string) {
     try {
       await this.stripe.refunds.create({ charge: chargeId });
-      await this.stripe.subscriptions.update(stripeSubId, {
-        cancel_at: Date.now() / 1000,
-        description: 'Subscription canceled and refunded',
-      });
-
+      await this.stripe.subscriptions.cancel(stripeSubId);
       return {
         message: 'Subscription canceled and refunded successfully',
       };
     } catch (error) {
       console.log(error);
-      throw new Error(error);
+      throw new Error(error.message);
     }
   }
 
@@ -121,7 +140,7 @@ export class SubscriptionService {
       };
     } catch (error) {
       console.log(error);
-      throw new Error(error);
+      throw new Error(error.message);
     }
   }
 }

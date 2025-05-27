@@ -89,7 +89,7 @@ export class StripeWebhookController {
         await this.handleChargeRefunded(event);
         break;
       case 'customer.subscription.deleted':
-        console.log('Subscription deleted:', event.data.object);
+        await this.handleSubscriptionDeleted(event);
         break;
       default:
         console.log(`Unhandled event type ${event.type}`);
@@ -100,7 +100,6 @@ export class StripeWebhookController {
 
   @ApiExcludeEndpoint()
   private async handleSubscriptionCreated(event: Stripe.Event) {
-    console.log(event);
     const session = event.data.object as Stripe.Checkout.Session;
     const { professional_id, plan } = session.metadata!;
     const professional = await this.prisma.user.findUnique({
@@ -127,7 +126,6 @@ export class StripeWebhookController {
 
   @ApiExcludeEndpoint()
   private async handleChargeRefunded(event: Stripe.Event) {
-    console.log(event);
     const billing_details = event.object;
     const email = billing_details;
     const professional = await this.prisma.user.findUnique({
@@ -147,6 +145,33 @@ export class StripeWebhookController {
     } catch (error) {
       console.log('Error deleting subscription:', error);
       throw error;
+    }
+  }
+
+  private async handleSubscriptionDeleted(event: Stripe.Event) {
+    try {
+      const customerId = event.data.object['customer'];
+      console.log(customerId)
+      const user = await this.prisma.user.findUnique({
+        where: {
+          stripeCustomerId: customerId,
+          role: 'PROFESSIONAL',
+        },
+      });
+
+      if (!user) throw new NotFoundException('User not found');
+
+      await this.prisma.subscription.deleteMany({
+        where: {
+          professionalId: user.id,
+        },
+      });
+
+      return {
+        message: 'OK',
+      };
+    } catch (error) {
+      console.log(error);
     }
   }
 }
