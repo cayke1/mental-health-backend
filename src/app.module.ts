@@ -21,6 +21,7 @@ import { DocumentService } from './document/document.service';
 import { DocumentModule } from './document/document.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { LoggerModule } from './logger/logger.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { LoggerModule } from './logger/logger.module';
       },
     }),
     LoggerModule,
+    NotificationsModule,
   ],
   controllers: [AppController, StripeWebhookController],
   providers: [
