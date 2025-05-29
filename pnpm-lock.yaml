@@ -38,6 +38,9 @@ importers:
       '@upstash/qstash':
         specifier: ^2.8.1
         version: 2.8.1
+      '@upstash/redis':
+        specifier: ^1.34.9
+        version: 1.34.9
       bcryptjs:
         specifier: ^3.0.2
         version: 3.0.2
@@ -1741,6 +1744,9 @@ packages:
 
   '@upstash/qstash@2.8.1':
     resolution: {integrity: sha512-E+JoLHMqygQksWATjS/9AAo7Mhi/k21Tu0zDwMm9GyNyNVjEJntQvmrH5NC7x6kXwjCDTEWFtIWz0JXu9/9pMQ==}
+
+  '@upstash/redis@1.34.9':
+    resolution: {integrity: sha512-7qzzF2FQP5VxR2YUNjemWs+hl/8VzJJ6fOkT7O7kt9Ct8olEVzb1g6/ik6B8Pb8W7ZmYv81SdlVV9F6O8bh/gw==}
 
   '@webassemblyjs/ast@1.14.1':
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
@@ -6408,6 +6414,10 @@ snapshots:
       crypto-js: 4.2.0
       jose: 5.10.0
       neverthrow: 7.2.0
+
+  '@upstash/redis@1.34.9':
+    dependencies:
+      crypto-js: 4.2.0
 
   '@webassemblyjs/ast@1.14.1':
     dependencies:
