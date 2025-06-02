@@ -13,7 +13,7 @@ const schema = z.object({
   RESEND_API_KEY: z.string(),
   DISCORD_LOG_PROJECT_ID: z.string(),
   DISCORD_LOG_WEBHOOK_URL: z.string().url(),
-  UPSTASH_REDIS_REST_URL: z.string().url().transform(cleanQuotes),
+  UPSTASH_REDIS_REST_URL: z.string().transform(cleanQuotes),
   UPSTASH_REDIS_REST_TOKEN: z.string().transform(cleanQuotes),
 });
 
