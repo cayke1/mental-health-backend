@@ -142,6 +142,22 @@ export class TherapySessionService {
           professionalId,
         },
       },
+      select: {
+        id: true,
+        startDate: true,
+        endDate: true,
+        professionalPatient: {
+          select: {
+            patient: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        confirmed: true,
+        done: true,
+      },
       orderBy: {
         startDate: 'asc',
       },
