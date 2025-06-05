@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post, Req } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req } from '@nestjs/common';
 import { Roles } from 'src/custom/decorators/roles.decorator';
 import { Role } from 'src/custom/enum/roles.enum';
 import { TherapySessionService } from './therapy-session.service';
@@ -13,6 +13,11 @@ export class TherapySessionController {
   @Post()
   async create(@Body() data: CreateTherapySessionDto) {
     return this.therapySessionService.createSession(data);
+  }
+
+  @Get()
+  async findSessions(@Req() request: AuthenticatedRequest) {
+    return this.therapySessionService.getSessions(request.user.sub);
   }
 
   @Delete('/:id')

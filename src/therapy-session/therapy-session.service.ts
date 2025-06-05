@@ -134,4 +134,22 @@ export class TherapySessionService {
       return error;
     }
   }
+
+  async getSessions(professionalId: string) {
+    const sessions = await this.prismaService.therapySession.findMany({
+      where: {
+        professionalPatient: {
+          professionalId,
+        },
+      },
+      orderBy: {
+        startDate: 'asc',
+      },
+    });
+
+    if (!sessions)
+      throw new NotFoundException('No sessions found for this professional');
+
+    return sessions;
+  }
 }
