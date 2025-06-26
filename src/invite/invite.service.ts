@@ -7,6 +7,7 @@ import {
 import { User } from '@prisma/client';
 import { getEmailTemplate } from 'src/custom/emailtemplates/base';
 import { MailService } from 'src/mail/mail.service';
+import { NotificationsService } from 'src/notifications/notifications.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class InviteService {
   constructor(
     private prisma: PrismaService,
     private mailService: MailService,
+    private notificationService: NotificationsService,
   ) {}
 
   private async checkSubscription(professional_id: string): Promise<boolean> {
@@ -99,6 +101,12 @@ export class InviteService {
       'Convite recebido',
     );
 
+    await this.notificationService.sendInfoNotification(
+      patient.id,
+      `Você recebeu um novo convite de ${professional.name}`,
+      `${process.env.FRONTEND_URL}/invite-link/link/${invite.id}`,
+    );
+
     return { invite, mail };
   }
 
@@ -131,6 +139,7 @@ export class InviteService {
 
     try {
       await this.mailService.sendMail(patient_email, html, 'Convite recebido');
+      // TODO: send notification when user registers
     } catch (error) {
       throw new InternalServerErrorException('Erro ao enviar e-mail');
     }
