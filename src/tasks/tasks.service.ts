@@ -12,7 +12,7 @@ export class TasksService {
   ) {}
   private readonly logger = new Logger(TasksService.name);
 
-  @Cron('0 19 * * *')
+  //@Cron('0 19 * * *')
   async handleCheckDailyFeeling() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
